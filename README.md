@@ -16,7 +16,6 @@ Contrairement aux notifications système standards, celle-ci permet d'ouvrir dir
 
 Clonez le dépôt et lancez simplement le script d'installation :
 
-```bash
 git clone [https://github.com/ToFpon/Gnome-46-USB-connect-notification.git](https://github.com/ToFpon/Gnome-46-USB-connect-notification.git)
 cd Gnome-46-USB-connect-notification
 chmod +x install.sh
