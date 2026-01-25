@@ -1,6 +1,6 @@
 # Gnome 46 USB Connect Notification
 
-Ce projet ajoute une notification interactive lors du branchement d'un support USB sur **Gnome 46** (testé sur Zorin OS 17). 
+Ce projet ajoute une notification interactive lors du branchement d'un support USB sur **Gnome 46** (testé sur Zorin OS 18). 
 
 Contrairement aux notifications système standards, celle-ci permet d'ouvrir directement le dossier de la clé dans **Nautilus** via un bouton dédié, tout en gérant intelligemment les noms de périphériques et les points de montage avec espaces.
 
