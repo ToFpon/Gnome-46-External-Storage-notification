@@ -18,7 +18,7 @@ Unlike standard system notifications, this one allows you to open the device fol
 - **MTP & NTFS Support**: Advanced detection for smartphones (via GVFS) and standard drives (NTFS, FAT32, EXT4).
 - **System/User Decoupling**: Robust architecture combining `udev` (system level) and an `inotify` watcher (user level).
 
-### 🛠️ Quick Installation
+## 🛠️ Quick Installation
 
 Clone the repository and run the installation script:
 
@@ -48,6 +48,7 @@ Ce projet ajoute une notification interactive lors du branchement d'un support U
 Contrairement aux notifications système standards, celle-ci permet d'ouvrir directement le dossier du périphérique dans Nautilus via un bouton dédié, tout en gérant intelligemment les noms de périphériques, les espaces et les points de montage MTP (Smartphones).
 
 ## ✨ Fonctionnalités
+
 - **Détection intelligente : Identifie le fabricant et le produit (ex: "Sony Storage Media" ou "Google Pixel 8a").
 - **Icônes adaptatives : Affiche une icône différente pour les téléphones (MTP), disques SSD, cartes SD ou clés USB.
 - **Action interactive : Propose un bouton "Ouvrir dans Nautilus" directement dans la notification.
