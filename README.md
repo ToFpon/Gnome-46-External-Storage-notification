@@ -10,7 +10,7 @@ This project adds an interactive notification when plugging in a USB storage dev
 
 Unlike standard system notifications, this one allows you to open the device folder directly in **Nautilus** via a dedicated button. It intelligently handles device names, spaces in volume labels, and MTP (Smartphone) mount points.
 
-### ✨ Features
+## ✨ Features
 
 - **Smart Detection**: Identifies manufacturer and product (e.g., "Sony Storage Media" or "Google Pixel 8a").
 - **Adaptive Icons**: Displays specific icons for smartphones (MTP), SSDs, SD cards, or USB drives.
@@ -48,15 +48,11 @@ Ce projet ajoute une notification interactive lors du branchement d'un support U
 Contrairement aux notifications système standards, celle-ci permet d'ouvrir directement le dossier du périphérique dans Nautilus via un bouton dédié, tout en gérant intelligemment les noms de périphériques, les espaces et les points de montage MTP (Smartphones).
 
 ## ✨ Fonctionnalités
-Détection intelligente : Identifie le fabricant et le produit (ex: "Sony Storage Media" ou "Google Pixel 8a").
-
-Icônes adaptatives : Affiche une icône différente pour les téléphones (MTP), disques SSD, cartes SD ou clés USB.
-
-Action interactive : Propose un bouton "Ouvrir dans Nautilus" directement dans la notification.
-
-Support MTP & NTFS : Détection avancée pour les smartphones (via GVFS) et les disques standards (NTFS, FAT32, EXT4).
-
-Découplage Système/Utilisateur : Architecture robuste combinant udev (système) et un watcher utilisateur via inotify.
+- **Détection intelligente : Identifie le fabricant et le produit (ex: "Sony Storage Media" ou "Google Pixel 8a").
+- **Icônes adaptatives : Affiche une icône différente pour les téléphones (MTP), disques SSD, cartes SD ou clés USB.
+- **Action interactive : Propose un bouton "Ouvrir dans Nautilus" directement dans la notification.
+- **Support MTP & NTFS : Détection avancée pour les smartphones (via GVFS) et les disques standards (NTFS, FAT32, EXT4).
+- **Découplage Système/Utilisateur : Architecture robuste combinant udev (système) et un watcher utilisateur via inotify.
 
 ## 🛠️ Installation rapide
 Clonez le dépôt et lancez simplement le script d'installation :
