@@ -49,11 +49,11 @@ Contrairement aux notifications système standards, celle-ci permet d'ouvrir dir
 
 ## ✨ Fonctionnalités
 
-- **Détection intelligente : Identifie le fabricant et le produit (ex: "Sony Storage Media" ou "Google Pixel 8a").
-- **Icônes adaptatives : Affiche une icône différente pour les téléphones (MTP), disques SSD, cartes SD ou clés USB.
-- **Action interactive : Propose un bouton "Ouvrir dans Nautilus" directement dans la notification.
-- **Support MTP & NTFS : Détection avancée pour les smartphones (via GVFS) et les disques standards (NTFS, FAT32, EXT4).
-- **Découplage Système/Utilisateur : Architecture robuste combinant udev (système) et un watcher utilisateur via inotify.
+- Détection intelligente : Identifie le fabricant et le produit (ex: "Sony Storage Media" ou "Google Pixel 8a").
+- Icônes adaptatives : Affiche une icône différente pour les téléphones (MTP), disques SSD, cartes SD ou clés USB.
+- Action interactive : Propose un bouton "Ouvrir dans Nautilus" directement dans la notification.
+- Support MTP & NTFS : Détection avancée pour les smartphones (via GVFS) et les disques standards (NTFS, FAT32, EXT4).
+- Découplage Système/Utilisateur : Architecture robuste combinant udev (système) et un watcher utilisateur via inotify.
 
 ## 🛠️ Installation rapide
 Clonez le dépôt et lancez simplement le script d'installation :
