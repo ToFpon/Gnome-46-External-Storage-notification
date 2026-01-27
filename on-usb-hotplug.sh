@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 CMD=$1
-IS_STORAGE=$(udevadm info --query=property --name=$DEVNAME 2>/dev/null | grep -E "ID_USB_INTERFACES|ID_SERIAL" | grep -E ":08|phone|android|pixel")
 
-if [ "$CMD" = "add" ] && [ -z "$IS_STORAGE" ]; then
-    # Si c'est un ajout mais pas du stockage, on ignore silencieusement
-    exit 0
-fi
 # On récupère les infos via les variables que udev nous envoie
 # Pour les cartes SD, ID_MODEL_FROM_DATABASE est souvent le plus précis
 DEVICE_NAME="${ID_MODEL_FROM_DATABASE:-${ID_MODEL:-Périphérique de stockage}}"
