@@ -1,2 +1,7 @@
+# 1. Pour l'USB (Clés, Pixels, etc.)
 SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ACTION=="add", RUN+="/usr/local/bin/on-usb-hotplug.sh add $attr{busnum} $attr{devnum}"
 SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ACTION=="remove", RUN+="/usr/local/bin/on-usb-hotplug.sh remove"
+
+# 2. Pour les CARTES SD (Lecteur interne sur bus PCI/MMC)
+SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", ACTION=="add", RUN+="/usr/local/bin/on-usb-hotplug.sh add"
+SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", ACTION=="remove", RUN+="/usr/local/bin/on-usb-hotplug.sh remove"
