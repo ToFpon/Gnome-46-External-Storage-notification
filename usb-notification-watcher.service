@@ -1,14 +1,15 @@
 [Unit]
 Description=USB Notification Watcher
-# On attend que la session graphique soit bien lancée
 After=graphical-session.target
 Wants=graphical-session.target
 
 [Service]
 Type=simple
-# %h est un raccourci automatique pour le répertoire Home de l'utilisateur
 ExecStart=%h/.local/bin/usb-notification-watcher.sh
 Restart=always
+Environment="DISPLAY=:0"
+Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus"
+Environment="XDG_RUNTIME_DIR=/run/user/1000"
 
 [Install]
 WantedBy=default.target

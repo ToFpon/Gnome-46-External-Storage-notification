@@ -2,45 +2,48 @@
 CMD=$1
 BUSNUM="${2:-${BUSNUM:-}}"
 
-# --- 1. FILTRE ANTI-HID (SOURIS/CLAVIER) ---
-# On utilise ton filtre qui marche super bien
-IS_STORAGE=$(udevadm info --query=property --name=$DEVNAME 2>/dev/null | grep -E "ID_USB_INTERFACES|ID_SERIAL" | grep -E ":08|phone|android|pixel")
-
-if [ "$CMD" = "add" ] && [ -z "$IS_STORAGE" ] && [ "$SUBSYSTEM" == "usb" ]; then
-    exit 0
-fi
-
-# --- 2. ÉVITER LES DOUBLONS ---
-# Si c'est un périphérique USB, on laisse la règle USB gérer. 
-# Si c'est la règle BLOCK qui tourne pour de l'USB, on arrête.
+# 1. Éviter les doublons
 if [ "$SUBSYSTEM" == "block" ] && [ "$ID_BUS" == "usb" ]; then
     exit 0
 fi
 
-# --- 3. RÉCUPÉRATION DU NOM ET ICÔNE ---
-# On cherche le nom le plus précis possible
-DEVICE_NAME="${ID_MODEL_FROM_DATABASE:-${ID_MODEL:-${ID_NAME:-Périphérique}}}"
+# --- RÉCUPÉRATION DU LABEL (Comme tu l'aimes) ---
 
-# On définit l'icône par défaut
+# On essaie d'abord de voir si la partition a un nom (ex: "DEDEE", "BACKUP")
+if [ -n "$ID_FS_LABEL" ]; then
+    DEVICE_NAME="$ID_FS_LABEL"
+else
+    # Sinon on prend le nom du constructeur (Méthode Hier)
+    VENDOR=$(cat /sys/bus/usb/devices/$BUSNUM-*/manufacturer 2>/dev/null | head -n1)
+    PRODUCT=$(cat /sys/bus/usb/devices/$BUSNUM-*/product 2>/dev/null | head -n1)
+    
+    if [ -n "$VENDOR" ] && [ -n "$PRODUCT" ]; then
+        DEVICE_NAME="$VENDOR $PRODUCT"
+    else
+        # Secours pour la SD
+        DEVICE_NAME="${ID_MODEL_FROM_DATABASE:-${ID_MODEL:-Périphérique}}"
+    fi
+fi
+
+# Nettoyage
+DEVICE_NAME=$(echo "$DEVICE_NAME" | xargs)
+
+# --- LOGIQUE DES ICÔNES ---
 ICON="drive-removable-media"
+CLEAN_NAME=$(echo "$DEVICE_NAME" | tr '[:upper:]' '[:lower:]')
 
-# Détection précise de l'icône
-# On checke le nom mais aussi le sous-système (MMC = souvent Carte SD)
-if echo "$DEVICE_NAME" | grep -Eqi "phone|android|pixel|google|samsung"; then
+if [[ "$CLEAN_NAME" =~ (phone|android|pixel|google|samsung) ]]; then
     ICON="phone"
-elif echo "$DEVICE_NAME" | grep -Eqi "ssd|nvme|solid.?state"; then
+elif [[ "$CLEAN_NAME" =~ (ssd|nvme|solid.state) ]]; then
     ICON="drive-harddisk-solidstate"
-elif [ "$SUBSYSTEM" == "mmc" ] || echo "$DEVPATH $DEVICE_NAME" | grep -Eqi "sd|mmc|card"; then
+elif [ "$SUBSYSTEM" == "mmc" ] || [[ "$CLEAN_NAME" =~ (sd|mmc|card) ]]; then
     ICON="media-flash"
-elif echo "$DEVICE_NAME" | grep -Eqi "storage|flash|usb|disk|mass"; then
+else
     ICON="drive-removable-media-usb-pendrive"
 fi
 
-# --- 4. ENVOI DE LA NOTIFICATION ---
+# --- ENVOI ---
 if [ "$CMD" = "add" ]; then
-    # Log pour vérifier ce qui se passe (optionnel)
-    echo "$(date) - Notif pour: $DEVICE_NAME (Icon: $ICON)" >> /tmp/on-usb-hotplug.txt
-
     for user in $(who | awk '{print $1}' | sort -u); do
         user_id=$(id -u "$user")
         echo "$DEVICE_NAME|$ICON|" > "/tmp/usb-hotplug-$user_id.trigger"
