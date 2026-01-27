@@ -23,6 +23,7 @@ action=$(notify-send "USB branché" "${DEVICE_NAME}" \
     --icon="${ICON}" \
     -h string:sound-file:/usr/share/sounds/zorin/stereo/device-added.oga \
     -u critical \
+    -a USB \
     -A "Ouvrir dans Nautilus")
 
 log "notify-send a retourné : '${action}'"
