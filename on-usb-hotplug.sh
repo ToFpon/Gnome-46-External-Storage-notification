@@ -3,6 +3,18 @@ CMD=$1
 BUSNUM="${2:-${BUSNUM:-inconnu}}"
 PORTNUM="${3:-${DEVNUM:-inconnu}}"
 
+# --- FILTRAGE DES PÉRIPHÉRIQUES ---
+# On vérifie si c'est un périphérique de stockage (Classe 08) 
+# ou un Smartphone (souvent via des interfaces spécifiques).
+# On ignore les claviers/souris (Classe 03 - HID).
+IS_STORAGE=$(udevadm info --query=property --name=$DEVNAME 2>/dev/null | grep -E "ID_USB_INTERFACES|ID_SERIAL" | grep -E ":08|phone|android|pixel")
+
+if [ "$CMD" = "add" ] && [ -z "$IS_STORAGE" ]; then
+    # Si c'est un ajout mais pas du stockage, on ignore silencieusement
+    exit 0
+fi
+# ----------------------------------
+
 print_date() {
     date +%Y-%m-%d_%H%M%S
 }
