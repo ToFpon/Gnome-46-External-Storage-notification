@@ -10,7 +10,6 @@ log_msg() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
 }
 
-# Fonction magique pour transformer %20 en espace
 decode_url() {
     printf '%b\n' "${1//%/\\x}"
 }
@@ -26,57 +25,49 @@ inotifywait -m -e create --format '%f' "$TRIGGER_DIR" | while read -r filename; 
 
         [[ -f "$TRIGGER_FILE" ]] || { log_msg "Erreur : Trigger disparu"; continue; }
 
-        # Lecture initiale
         IFS='|' read -r DEVICE_NAME ICON _ < "$TRIGGER_FILE"
         rm -f "$TRIGGER_FILE"
 
         # ---------- Recherche du point de montage ----------
-        MAX_WAIT=7
+        MAX_WAIT=4 # On réduit un peu pour les HID, inutile d'attendre 7s
         STEP=0.5
         elapsed=0
         MOUNT_POINT=""
 
         while (( $(bc <<< "$elapsed < $MAX_WAIT") )); do
             MOUNT_POINT=$(findmnt -rn -o TARGET | grep "^/media/$USER/" | head -n 1)
-            
             if [[ -z "$MOUNT_POINT" ]]; then
                 MTP_PATH=$(ls "/run/user/$USER_ID/gvfs/" 2>/dev/null | grep -m1 "mtp:host=")
-                if [[ -n "$MTP_PATH" ]]; then
-                    MOUNT_POINT="/run/user/$USER_ID/gvfs/$MTP_PATH"
-                fi
+                [[ -n "$MTP_PATH" ]] && MOUNT_POINT="/run/user/$USER_ID/gvfs/$MTP_PATH"
             fi
-
             [[ -n "$MOUNT_POINT" ]] && break
             sleep "$STEP"
             elapsed=$(bc <<< "$elapsed+$STEP")
         done
 
-        # ---------- LOGIQUE DE NETTOYAGE DU LABEL ----------
+        # ---------- Détermination du Label et du Mode ----------
         FINAL_LABEL="$DEVICE_NAME"
-
-        if [[ -n "$MOUNT_POINT" && "$MOUNT_POINT" != "$HOME" ]]; then
+        
+        if [[ -n "$MOUNT_POINT" ]]; then
+            # C'est un périphérique de stockage
             FOLDER_NAME=$(basename "$MOUNT_POINT")
-            
             if [[ "$MOUNT_POINT" == *"gvfs"* ]]; then
-                # --- LOGIQUE SMARTPHONE (Ton code d'orfèvre) ---
-                # 1. On enlève le préfixe gvfs
-                # 2. On remplace les underscores par des espaces
-                # 3. On coupe TOUT ce qui ressemble à un ID de série (lettres+chiffres longs à la fin)
                 FINAL_LABEL=$(echo "$FOLDER_NAME" | sed 's/mtp:host=//; s/_/ /g' | sed -E 's/ [A-Z0-9]{10,25}//g')
-                log_msg "Nettoyage Smartphone : $FOLDER_NAME -> $FINAL_LABEL"
             else
-                # --- LOGIQUE CLÉ USB / SD ---
-                # On décode les %20 et on remplace les underscores
                 TEMP_LABEL=$(decode_url "$FOLDER_NAME")
                 FINAL_LABEL=$(echo "$TEMP_LABEL" | sed 's/_/ /g' | xargs)
-                log_msg "Nettoyage Disque : $FOLDER_NAME -> $FINAL_LABEL"
             fi
+        else
+            # C'est un HID ou autre sans point de montage
+            # On garde le DEVICE_NAME (ex: "Logitech USB Optical Mouse")
+            # Et on peut même ajuster l'icône si udev a été trop générique
+            log_msg "Périphérique HID détecté (pas de montage)."
         fi
 
-        # Nettoyage final des espaces en trop
         FINAL_LABEL=$(echo "$FINAL_LABEL" | xargs)
 
         # ---------- Appel de l'action ----------
+        # Si MOUNT_POINT est vide, le script d'action saura qu'il ne faut pas mettre de bouton
         "$HOME/.local/bin/usb-notification-action.sh" \
             "$FINAL_LABEL" "$ICON" "$MOUNT_POINT" & >> "$LOG_FILE" 2>&1
         
