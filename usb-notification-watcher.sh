@@ -29,7 +29,7 @@ inotifywait -m -e create --format '%f' "$TRIGGER_DIR" | while read -r filename; 
         rm -f "$TRIGGER_FILE"
 
         # ---------- Recherche du point de montage ----------
-        MAX_WAIT=4 # On réduit un peu pour les HID, inutile d'attendre 7s
+        MAX_WAIT=4 
         STEP=0.5
         elapsed=0
         MOUNT_POINT=""
@@ -49,25 +49,32 @@ inotifywait -m -e create --format '%f' "$TRIGGER_DIR" | while read -r filename; 
         FINAL_LABEL="$DEVICE_NAME"
         
         if [[ -n "$MOUNT_POINT" ]]; then
-            # C'est un périphérique de stockage
-            FOLDER_NAME=$(basename "$MOUNT_POINT")
             if [[ "$MOUNT_POINT" == *"gvfs"* ]]; then
-                FINAL_LABEL=$(echo "$FOLDER_NAME" | sed 's/mtp:host=//; s/_/ /g' | sed -E 's/ [A-Z0-9]{10,25}//g')
+                # --- STRATÉGIE ADB (NOM DE LUXE) ---
+                log_msg "Tentative de récupération du nom via ADB..."
+                # On attend 1s max pour ne pas bloquer si le tel n'est pas en débug
+                ADB_NAME=$(timeout 1.2s adb shell settings get global device_name 2>/dev/null | tr -d '\r')
+                
+                if [[ -z "$ADB_NAME" || "$ADB_NAME" == "null" ]]; then
+                    # Fallback sur la méthode classique si ADB échoue
+                    FOLDER_NAME=$(basename "$MOUNT_POINT")
+                    FINAL_LABEL=$(echo "$FOLDER_NAME" | sed 's/mtp:host=//; s/_/ /g' | sed -E 's/ [A-Z0-9]{10,25}//g')
+                    log_msg "ADB a échoué, utilisation du label MTP classique."
+                else
+                    FINAL_LABEL="$ADB_NAME"
+                    log_msg "Nom récupéré via ADB : $FINAL_LABEL"
+                fi
             else
+                # Stockage USB Classique
+                FOLDER_NAME=$(basename "$MOUNT_POINT")
                 TEMP_LABEL=$(decode_url "$FOLDER_NAME")
                 FINAL_LABEL=$(echo "$TEMP_LABEL" | sed 's/_/ /g' | xargs)
             fi
-        else
-            # C'est un HID ou autre sans point de montage
-            # On garde le DEVICE_NAME (ex: "Logitech USB Optical Mouse")
-            # Et on peut même ajuster l'icône si udev a été trop générique
-            log_msg "Périphérique HID détecté (pas de montage)."
         fi
 
         FINAL_LABEL=$(echo "$FINAL_LABEL" | xargs)
 
         # ---------- Appel de l'action ----------
-        # Si MOUNT_POINT est vide, le script d'action saura qu'il ne faut pas mettre de bouton
         "$HOME/.local/bin/usb-notification-action.sh" \
             "$FINAL_LABEL" "$ICON" "$MOUNT_POINT" & >> "$LOG_FILE" 2>&1
         
