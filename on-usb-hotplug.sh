@@ -29,7 +29,7 @@ fi
 DEVICE_NAME=$(echo "$DEVICE_NAME" | xargs)
 
 # --- LOGIQUE DES ICÔNES ---
-ICON="drive-removable-media"
+ICON="drive-removable-media-usb"
 CLEAN_NAME=$(echo "$DEVICE_NAME" | tr '[:upper:]' '[:lower:]')
 
 # Détection précise de l'icône
@@ -37,7 +37,7 @@ if echo "$CLEAN_NAME" | grep -Eqi "phone|android|pixel|google|samsung"; then
     ICON="phone"
 # On ajoute 'external', 'drive' et 'hdd' pour capturer les disques durs
 elif echo "$CLEAN_NAME" | grep -Eqi "ssd|nvme|solid.?state|external|drive|hdd"; then
-    ICON="drive-harddisk-solidstate"
+    ICON="drive-removable-media-usb"
 elif [ "$SUBSYSTEM" == "mmc" ] || echo "$CLEAN_NAME" | grep -Eqi "sd|mmc|card"; then
     ICON="media-flash"
 elif echo "$CLEAN_NAME" | grep -Eqi "storage|flash|usb|disk|mass"; then

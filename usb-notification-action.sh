@@ -21,7 +21,7 @@ export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus
 
 if [[ -n "${MOUNT_POINT}" ]]; then
     # --- CAS STOCKAGE (Avec bouton) ---
-    action=$(notify-send "USB branché" "${DEVICE_NAME}" \
+    action=$(notify-send "Périphérique USB branché" "<b>${DEVICE_NAME}</b>" \
         --icon="${ICON}" \
         -h string:sound-file:/usr/share/sounds/zorin/stereo/device-added.oga \
         -u critical \
