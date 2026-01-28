@@ -9,7 +9,7 @@ echo -e "${BLUE}=== Installation des notifications USB pour Gnome 46 ===${NC}"
 
 # 1. Vérification des dépendances
 echo -e "\n> Vérification des dépendances..."
-for pkg in inotify-tools libnotify-bin bc util-linux; do
+for pkg in inotify-tools libnotify-bin bc util-linux adb; do
     if ! command -v $pkg &> /dev/null; then
         echo -e "Installation de $pkg..."
         sudo apt update && sudo apt install -y $pkg
