@@ -12,8 +12,8 @@ This project adds an interactive notification when plugging in a USB storage dev
 Unlike standard system notifications, this one allows you to open the device folder directly in **Nautilus** via a dedicated button. It intelligently handles device names, spaces in volume labels, and MTP (Smartphone) mount points.
 
 ## 📷 Screenshots:
-<img width="424" height="146" alt="key-notif" src="https://github.com/user-attachments/assets/7a4821f8-ceaf-4b5d-9bfd-67ce776431d1" /><img width="424" height="146" alt="drive-notif" src="https://github.com/user-attachments/assets/7eded233-35b1-4496-a72e-32022f2890af" />
-<img width="424" height="146" alt="sd-notif" src="https://github.com/user-attachments/assets/51f4c1d0-2d63-4a72-929b-f02e3f471e8c" /><img width="424" height="146" alt="phone-notif" src="https://github.com/user-attachments/assets/f0bb9109-4f7f-414b-81cd-ed994b4b3d74" />
+<img width="212" height="73" alt="key-notif" src="https://github.com/user-attachments/assets/371f9fe1-fddc-4210-88dc-61322303c549" /><img width="212" height="73" alt="drive-notif" src="https://github.com/user-attachments/assets/7eded233-35b1-4496-a72e-32022f2890af" />
+<img width="212" height="73" alt="sd-notif" src="https://github.com/user-attachments/assets/51f4c1d0-2d63-4a72-929b-f02e3f471e8c" /><img width="212" height="73" alt="phone-notif" src="https://github.com/user-attachments/assets/f0bb9109-4f7f-414b-81cd-ed994b4b3d74" />
 
 ## ✨ Features
 
