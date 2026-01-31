@@ -1,15 +1,15 @@
 [Unit]
 Description=USB Notification Watcher
 After=graphical-session.target
-Wants=graphical-session.target
 
 [Service]
 Type=simple
+# 1. On attend d'abord que le système soit prêt
+ExecStartPre=/bin/sleep 5
+# 2. On lance le script seulement après
 ExecStart=%h/.local/bin/usb-notification-watcher.sh
 Restart=always
-Environment="DISPLAY=:0"
-Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus"
-Environment="XDG_RUNTIME_DIR=/run/user/1000"
+RestartSec=3
 
 [Install]
 WantedBy=default.target

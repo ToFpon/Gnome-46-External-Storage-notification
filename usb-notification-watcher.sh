@@ -14,6 +14,14 @@ decode_url() {
     printf '%b\n' "${1//%/\\x}"
 }
 
+# --- LA MAGIE POST-REBOOT ---
+# On lance le serveur ADB en arrière-plan dès le démarrage du service.
+# Comme ça, il est déjà "chaud" quand tu branches ton Pixel.
+if command -v adb &> /dev/null; then
+    log_msg "Pré-chargement du serveur ADB..."
+    adb start-server &
+fi
+
 log_msg "Démarrage du watcher pour l'utilisateur $USER_ID"
 
 inotifywait -m -e create --format '%f' "$TRIGGER_DIR" | while read -r filename; do
