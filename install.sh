@@ -1,55 +1,50 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Couleurs pour le terminal
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
-RED='\033[0;31m'
 NC='\033[0m'
 
-echo -e "${BLUE}Installation de BT-OSD (Lola) - Version Stable${NC}"
+echo -e "${BLUE}=== Installation des notifications USB pour Gnome 46 ===${NC}"
 
-# 1. Nettoyage préventif des anciens fichiers conflictuels
-echo -e "${BLUE}Nettoyage des anciennes configurations...${NC}"
-# On tente de supprimer les anciens fichiers fixes qui causaient des erreurs de droits
-rm -f /tmp/current_bt_name /tmp/current_bt_icon 2>/dev/null || echo -e "${RED}Note: Certains fichiers dans /tmp n'ont pas pu être nettoyés (déjà utilisés par root), mais la nouvelle version les ignorera.${NC}"
+# 1. Vérification des dépendances
+echo -e "\n> Vérification des dépendances..."
+for pkg in inotify-tools libnotify-bin bc util-linux adb; do
+    if ! command -v $pkg &> /dev/null; then
+        echo -e "Installation de $pkg..."
+        sudo apt update && sudo apt install -y $pkg
+    fi
+done
 
 # 2. Création des dossiers locaux
+echo -e "\n> Préparation des dossiers locaux..."
 mkdir -p "$HOME/.local/bin"
 mkdir -p "$HOME/.config/systemd/user"
 
-# 3. Copie du script principal
-if [ -f "btnot.sh" ]; then
-    cp btnot.sh "$HOME/.local/bin/btnot.sh"
-    chmod +x "$HOME/.local/bin/btnot.sh"
-    echo -e "${GREEN} -> Script copié dans ~/.local/bin/btnot.sh${NC}"
-else
-    echo -e "${RED}Erreur: btnot.sh introuvable dans le dossier actuel !${NC}"
-    exit 1
-fi
+# 3. Copie des fichiers Utilisateur (sans sudo)
+echo -e "> Installation des scripts utilisateur..."
+cp usb-notification-watcher.sh "$HOME/.local/bin/"
+cp usb-notification-action.sh "$HOME/.local/bin/"
+cp usb-notification-watcher.service "$HOME/.config/systemd/user/"
 
-# 4. Création du fichier service systemd
-cat <<EOF > "$HOME/.config/systemd/user/btnot.service"
-[Unit]
-Description=Service de notification Bluetooth et OSD Volume (Lola)
-After=bluetooth.target
+chmod +x "$HOME/.local/bin/usb-notification-watcher.sh"
+chmod +x "$HOME/.local/bin/usb-notification-action.sh"
 
-[Service]
-ExecStart=$HOME/.local/bin/btnot.sh
-Restart=always
-RestartSec=5
+# 4. Copie des fichiers Système (nécessite sudo)
+echo -e "> Installation des scripts système (sudo requis)..."
+sudo cp on-usb-hotplug.sh /usr/local/bin/
+sudo chmod +x /usr/local/bin/on-usb-hotplug.sh
 
-[Install]
-WantedBy=default.target
-EOF
+sudo cp 99-usb-hotplug.rules /etc/udev/rules.d/
 
-echo -e "${GREEN} -> Service systemd créé.${NC}"
+# 5. Rechargement du système
+echo -e "\n> Rechargement des services..."
+sudo udevadm control --reload-rules
+sudo udevadm trigger
 
-# 5. Activation et lancement
 systemctl --user daemon-reload
-systemctl --user enable btnot.service
-systemctl --user restart btnot.service
+systemctl --user enable usb-notification-watcher.service
+systemctl --user restart usb-notification-watcher.service
 
-echo -e "${BLUE}-------------------------------------------------------${NC}"
-echo -e "${GREEN}Installation terminée avec succès !${NC}"
-echo -e "Lola est prête. Connecte un appareil Bluetooth pour tester l'OSD."
-echo -e "${BLUE}-------------------------------------------------------${NC}"
+echo -e "\n${GREEN}=== Installation terminée avec succès ! ===${NC}"
+echo -e "Branche une clé USB pour tester la notification."
