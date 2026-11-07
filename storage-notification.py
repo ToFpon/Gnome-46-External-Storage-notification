@@ -25,7 +25,7 @@ from gi.repository import Gio, GLib  # noqa: E402
 
 APP_NAME = "Stockage externe"
 SOUND = "/usr/share/sounds/zorin/stereo/device-added.oga"     # son de Zorin, s'il existe
-TIMEOUT_MS = 10000                                            # la notification s'efface d'elle-même
+TIMEOUT_MS = 10000      # délai d'effacement : GNOME Shell l'ignore, d'autres bureaux le suivent
 
 _LANG = (locale.getlocale()[0] or os.environ.get("LANG", "")).lower()
 FR = _LANG.startswith("fr")
@@ -88,7 +88,9 @@ class Notifier:
                                   Gio.DBusSignalFlags.NONE, self._on_closed)
 
     def notify(self, body: str, icon: str, uri: str):
-        hints = {"category": GLib.Variant("s", "device.added")}
+        # urgence critique (comme l'ancienne version) : GNOME Shell déplie la bannière d'office,
+        # le bouton « Ouvrir » est visible sans survol ; elle reste jusqu'au clic ou à la fermeture
+        hints = {"category": GLib.Variant("s", "device.added"), "urgency": GLib.Variant("y", 2)}
         fm = Gio.AppInfo.get_default_for_type("inode/directory", False)
         if fm is not None and fm.get_id():
             # icône / nom de l'application dans la notification : le gestionnaire de fichiers choisi
