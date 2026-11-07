@@ -136,12 +136,32 @@ def main() -> int:
         loop.run()
         return 0
     monitor = Gio.VolumeMonitor.get()
+    pending: dict[str, tuple] = {}          # URI → (montage le plus récent, minuteur)
+    recent: dict[str, int] = {}             # URI → instant de la dernière notification (µs)
+
+    # Téléphone (MTP) : GVfs annonce d'abord le montage brut (nom « mtp »), puis le volume le
+    # recouvre d'un montage « ombre » qui porte le vrai nom du téléphone (le brut devient
+    # is_shadowed()). On attend un peu que ça se tasse : une seule notification, avec le dernier
+    # montage annoncé pour ce dossier et le nom qu'il a au moment de notifier.
+    def announce(uri):
+        mount = pending.pop(uri)[0]
+        if mount.is_shadowed() or not is_external(mount):
+            return False
+        now = GLib.get_monotonic_time()
+        if now - recent.get(uri, 0) < 5_000_000:       # même support déjà annoncé à l'instant
+            return False
+        recent[uri] = now
+        notifier.notify(describe(mount), icon_name(mount.get_icon()), uri)
+        return False
 
     def added(_monitor, mount):
-        if not is_external(mount):
-            return
         root = mount.get_root()
-        notifier.notify(describe(mount), icon_name(mount.get_icon()), root.get_uri())
+        if root is None:
+            return
+        uri = root.get_uri()
+        if uri in pending:
+            GLib.source_remove(pending[uri][1])
+        pending[uri] = (mount, GLib.timeout_add(1500, announce, uri))
     monitor.connect("mount-added", added)
     # les supports déjà branchés au démarrage de la session ne sont pas annoncés : seulement les nouveaux
     loop.run()
