@@ -1,50 +1,48 @@
-#!/bin/bash
+#!/bin/sh
+# Notification au branchement d'un stockage externe pour GNOME 46.
+#   ./install.sh              installe (pour l'utilisateur courant, sans sudo)
+#   ./install.sh --uninstall  désinstalle
+# L'ancienne version (règle udev + scripts, dossier legacy/) est retirée si elle est trouvée.
+set -e
+cd "$(dirname "$0")"
+BIN="$HOME/.local/bin"
+UNITS="$HOME/.config/systemd/user"
 
-# Couleurs pour le terminal
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-echo -e "${BLUE}=== Installation des notifications USB pour Gnome 46 ===${NC}"
-
-# 1. Vérification des dépendances
-echo -e "\n> Vérification des dépendances..."
-for pkg in inotify-tools libnotify-bin bc util-linux adb; do
-    if ! command -v $pkg &> /dev/null; then
-        echo -e "Installation de $pkg..."
-        sudo apt update && sudo apt install -y $pkg
+remove_legacy() {
+    if [ -f "$UNITS/usb-notification-watcher.service" ]; then
+        echo "> Ancienne version trouvée : arrêt de usb-notification-watcher"
+        systemctl --user disable --now usb-notification-watcher.service 2>/dev/null || true
+        rm -f "$UNITS/usb-notification-watcher.service" "$BIN/usb-notification-watcher.sh" \
+              "$BIN/usb-notification-action.sh"
     fi
-done
+    if [ -e /etc/udev/rules.d/99-usb-hotplug.rules ] || [ -e /usr/local/bin/on-usb-hotplug.sh ]; then
+        echo "> Retrait de la règle udev de l'ancienne version (mot de passe demandé)"
+        sudo rm -f /etc/udev/rules.d/99-usb-hotplug.rules /usr/local/bin/on-usb-hotplug.sh
+        sudo udevadm control --reload-rules
+    fi
+}
 
-# 2. Création des dossiers locaux
-echo -e "\n> Préparation des dossiers locaux..."
-mkdir -p "$HOME/.local/bin"
-mkdir -p "$HOME/.config/systemd/user"
+if [ "$1" = "--uninstall" ]; then
+    systemctl --user disable --now storage-notification.service 2>/dev/null || true
+    rm -f "$UNITS/storage-notification.service" "$BIN/storage-notification.py"
+    systemctl --user daemon-reload
+    echo "Désinstallé."
+    exit 0
+fi
 
-# 3. Copie des fichiers Utilisateur (sans sudo)
-echo -e "> Installation des scripts utilisateur..."
-cp usb-notification-watcher.sh "$HOME/.local/bin/"
-cp usb-notification-action.sh "$HOME/.local/bin/"
-cp usb-notification-watcher.service "$HOME/.config/systemd/user/"
+if ! python3 -c "import gi; gi.require_version('Gio', '2.0')" 2>/dev/null; then
+    echo "> python3-gi manque : installation (mot de passe demandé)"
+    sudo apt install -y python3-gi
+fi
 
-chmod +x "$HOME/.local/bin/usb-notification-watcher.sh"
-chmod +x "$HOME/.local/bin/usb-notification-action.sh"
-
-# 4. Copie des fichiers Système (nécessite sudo)
-echo -e "> Installation des scripts système (sudo requis)..."
-sudo cp on-usb-hotplug.sh /usr/local/bin/
-sudo chmod +x /usr/local/bin/on-usb-hotplug.sh
-
-sudo cp 99-usb-hotplug.rules /etc/udev/rules.d/
-
-# 5. Rechargement du système
-echo -e "\n> Rechargement des services..."
-sudo udevadm control --reload-rules
-sudo udevadm trigger
-
+remove_legacy
+mkdir -p "$BIN" "$UNITS"
+install -m 755 storage-notification.py "$BIN/storage-notification.py"
+install -m 644 storage-notification.service "$UNITS/storage-notification.service"
 systemctl --user daemon-reload
-systemctl --user enable usb-notification-watcher.service
-systemctl --user restart usb-notification-watcher.service
+systemctl --user enable --now storage-notification.service
+systemctl --user restart storage-notification.service
 
-echo -e "\n${GREEN}=== Installation terminée avec succès ! ===${NC}"
-echo -e "Branche une clé USB pour tester la notification."
+echo "Installé. Notification d'essai :"
+python3 "$BIN/storage-notification.py" --test
+echo "Branche une clé USB pour voir la vraie."
